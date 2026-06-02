@@ -260,4 +260,49 @@ describe('graphviz endpoint', () => {
         done();
       });
   });
+
+  it('renders svg via dedicated /graphviz GET route', done => {
+    const graphStr = 'digraph{a->b->c}';
+    request(app)
+      .get(`/graphviz?graph=${encodeURIComponent(graphStr)}`)
+      .expect('Content-Type', 'image/svg+xml')
+      .expect(200)
+      .end((err, res) => {
+        assert(res.body.indexOf('<svg') > -1);
+        done();
+      });
+  });
+
+  it('renders svg via dedicated /graphviz POST route', done => {
+    request(app)
+      .post('/graphviz')
+      .send({ graph: 'digraph{a->b->c}', layout: 'dot' })
+      .expect('Content-Type', 'image/svg+xml')
+      .expect(200)
+      .end((err, res) => {
+        assert(res.body.indexOf('<svg') > -1);
+        done();
+      });
+  });
+
+  it('renders png with size via dedicated /graphviz route', done => {
+    const graphStr = 'digraph{a->b}';
+    request(app)
+      .get(`/graphviz?graph=${encodeURIComponent(graphStr)}&format=png&width=400&height=200`)
+      .expect('Content-Type', 'image/png')
+      .expect(200)
+      .end((err, res) => {
+        const dimensions = imageSize(res.body);
+        assert.equal(400, dimensions.width);
+        assert.equal(200, dimensions.height);
+        done();
+      });
+  });
+
+  it('returns an error when graph variable is missing', done => {
+    request(app)
+      .get('/graphviz')
+      .expect(500)
+      .end(() => done());
+  });
 });

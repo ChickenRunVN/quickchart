@@ -222,7 +222,7 @@ function doChartjsRender(req, res, opts) {
 
 async function handleGraphviz(req, res, graphVizDef, opts) {
   try {
-    const buf = await renderGraphviz(req.query.chl, opts);
+    const buf = await renderGraphviz(graphVizDef, opts);
     res
       .status(200)
       .type(opts.format === 'png' ? 'image/png' : 'image/svg+xml')
@@ -234,6 +234,34 @@ async function handleGraphviz(req, res, graphVizDef, opts) {
       failSvg(res, `Graph Error: ${err}`);
     }
   }
+}
+
+function handleGraphvizRequest(req, res, params) {
+  const format = (params.format || 'svg').toLowerCase();
+
+  if (!params.graph) {
+    if (format === 'png') {
+      failPng(res, 'You are missing variable `graph`');
+    } else {
+      failSvg(res, 'You are missing variable `graph`');
+    }
+    return;
+  }
+
+  const opts = {
+    format,
+    engine: params.layout || params.engine || 'dot',
+  };
+
+  const width = parseInt(params.width, 10);
+  const height = parseInt(params.height, 10);
+  if (width && height) {
+    opts.width = width;
+    opts.height = height;
+  }
+
+  handleGraphviz(req, res, params.graph, opts);
+  telemetry.count('graphvizCount');
 }
 
 function handleGChart(req, res) {
@@ -432,6 +460,14 @@ app.get('/qr', (req, res) => {
 });
 
 app.get('/gchart', handleGChart);
+
+app.get('/graphviz', (req, res) => {
+  handleGraphvizRequest(req, res, req.query);
+});
+
+app.post('/graphviz', (req, res) => {
+  handleGraphvizRequest(req, res, req.body);
+});
 
 app.get('/healthcheck', (req, res) => {
   // A lightweight healthcheck endpoint.
