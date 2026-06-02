@@ -5,7 +5,7 @@ ENV NODE_ENV production
 WORKDIR /quickchart
 
 RUN apk add --upgrade apk-tools
-RUN apk add --no-cache --virtual .build-deps yarn git build-base g++ python3
+RUN apk add --no-cache --virtual .build-deps yarn git build-base g++ python3 py3-setuptools
 RUN apk add --no-cache --virtual .npm-deps cairo-dev pango-dev libjpeg-turbo-dev librsvg-dev
 RUN apk add --no-cache --virtual .fonts libmount ttf-dejavu ttf-droid ttf-freefont ttf-liberation font-noto font-noto-emoji fontconfig
 RUN apk add --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community font-wqy-zenhei
