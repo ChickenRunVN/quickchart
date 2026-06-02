@@ -73,9 +73,4 @@ jobs:
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 yarn install
         
       - name: Lint code
-        run: |
-          if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc.yml" ] || [ -f ".eslintrc.yaml" ]; then
-            npx eslint .
-          else
-            echo "No ESLint configuration found, skipping lint step"
-          fi
+        run: npx eslint .
