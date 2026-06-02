@@ -1,0 +1,25 @@
+# Self-host quickchart. `docker compose up -d --build` then GET http://localhost:3400/healthcheck
+services:
+  quickchart:
+    build: .
+    # Or pull the published image instead of building:
+    # image: ghcr.io/chickenrunvn/quickchart:latest
+    ports:
+      - "3400:3400"
+    volumes:
+      # Persist the short-URL chart store (sqlite).
+      - quickchart-db:/var/lib/db
+    environment:
+      - NODE_ENV=production
+      # SECURITY: when this instance is reachable by untrusted clients, refuse
+      # JS-function chart configs (they are eval'd via `new Function`, not a
+      # sandbox). JSON chart configs keep working.
+      # - DISABLE_JS_CHARTS=1
+      # Per-IP request cap (off unless set):
+      # - RATE_LIMIT_PER_MIN=60
+      # Remote usage telemetry to quickchart.io is OFF by default; opt in with:
+      # - ENABLE_TELEMETRY_SEND=1
+    restart: unless-stopped
+
+volumes:
+  quickchart-db:
