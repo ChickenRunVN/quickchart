@@ -1,29 +1,33 @@
-FROM node:22-alpine
+# ---- build stage: compile native modules (canvas, sqlite3) + fetch sharp prebuilt ----
+FROM node:22-alpine AS build
 
-ENV NODE_ENV production
-
+ENV NODE_ENV=production
 WORKDIR /quickchart
 
-RUN apk add --upgrade apk-tools
-RUN apk add --no-cache --virtual .build-deps yarn git build-base g++ python3 py3-setuptools
-RUN apk add --no-cache --virtual .npm-deps cairo-dev pango-dev libjpeg-turbo-dev librsvg-dev
-RUN apk add --no-cache --virtual .fonts libmount ttf-dejavu ttf-droid ttf-freefont ttf-liberation font-noto font-noto-emoji fontconfig
-RUN apk add --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community font-wqy-zenhei
-RUN apk add --no-cache libimagequant-dev
-RUN apk add --no-cache vips-dev
-RUN apk add --no-cache --virtual .runtime-deps graphviz
-RUN apk add --no-cache sqlite
+# Build toolchain + -dev headers needed only to compile native addons.
+RUN apk add --no-cache \
+    build-base g++ python3 py3-setuptools yarn git \
+    cairo-dev pango-dev libjpeg-turbo-dev librsvg-dev pixman-dev libimagequant-dev
 
-COPY package*.json .
-COPY yarn.lock .
+COPY package*.json yarn.lock ./
 RUN yarn install --production && yarn cache clean
 
-RUN apk update
-RUN rm -rf /var/cache/apk/* && \
-    rm -rf /tmp/* && \
-    rm -rf /usr/local/share/.cache /root/.cache /root/.node-gyp
-RUN apk del .build-deps
+# ---- runtime stage: runtime shared libs only (no -dev, no build tools) ----
+FROM node:22-alpine
 
+ENV NODE_ENV=production
+WORKDIR /quickchart
+
+# Runtime .so deps for the canvas native addon. sharp 0.34 ships its own libvips
+# via @img/* (copied in node_modules), so no system vips package is needed.
+RUN apk add --no-cache \
+    cairo pango libjpeg-turbo librsvg pixman libimagequant \
+    graphviz sqlite \
+    ttf-dejavu ttf-droid ttf-freefont ttf-liberation font-noto font-noto-emoji fontconfig
+RUN apk add --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community font-wqy-zenhei
+
+COPY --from=build /quickchart/node_modules ./node_modules
+COPY package*.json yarn.lock ./
 COPY *.js ./
 COPY lib/*.js lib/
 COPY LICENSE .
