@@ -16,11 +16,12 @@ RUN apk add --no-cache sqlite
 
 COPY package*.json .
 COPY yarn.lock .
-RUN yarn install --production
+RUN yarn install --production && yarn cache clean
 
 RUN apk update
 RUN rm -rf /var/cache/apk/* && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* && \
+    rm -rf /usr/local/share/.cache /root/.cache /root/.node-gyp
 RUN apk del .build-deps
 
 COPY *.js ./
