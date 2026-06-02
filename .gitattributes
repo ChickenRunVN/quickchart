@@ -1,0 +1,15 @@
+# Normalize line endings to LF on checkout for every host (kills CRLF churn).
+* text=auto eol=lf
+
+# Treat known binaries as binary (never EOL-normalize).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.db binary
