@@ -37,7 +37,7 @@ app.use(
   }),
 );
 
-app.use(express.urlencoded());
+app.use(express.urlencoded({ limit: process.env.EXPRESS_JSON_LIMIT || '100kb', extended: false }));
 
 if (process.env.RATE_LIMIT_PER_MIN) {
   const limitMax = parseInt(process.env.RATE_LIMIT_PER_MIN, 10);
@@ -122,7 +122,7 @@ function failSvg(res, msg, statusCode = 500) {
   </style>
   <foreignObject width="240" height="80"
    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-    <p xmlns="http://www.w3.org/1999/xhtml">${msg}</p>
+    <p xmlns="http://www.w3.org/1999/xhtml">${String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
   </foreignObject>
 </svg>`);
 }
@@ -538,24 +538,24 @@ app.get('/chart/render/:key', async (req, res) => {
 
   db.get('SELECT config FROM charts WHERE id = ?', [key], function(err, row) {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message }); // add return — else falls through to row check with null row
     }
 
     if (!row) {
       return res.status(404).json({ error: 'Template not found' });
     }
-    //return res.status(200).json({status: 'success'});
     let chartConfig = JSON.parse(row.config);
     chartConfig = applyTemplateOverrides(chartConfig, req.query);
-    if (chartConfig.format === 'pdf') {
+    const fmt = chartConfig.format;
+    if (fmt === 'pdf') {
       renderChartToPdf(req, res, chartConfig);
-    } else if (chartConfig.format === 'svg') {
+    } else if (fmt === 'svg') {
       renderChartToSvg(req, res, chartConfig);
-    } else if (!chartConfig.format || chartConfig.format === 'png') {
+    } else if (!fmt || fmt === 'png') {
       renderChartToPng(req, res, chartConfig);
     } else {
-      logger.error(`Request for unsupported format ${outputFormat}`);
-      res.status(500).end(`Unsupported format ${outputFormat}`);
+      logger.error(`Request for unsupported format ${fmt}`); // was: outputFormat (ReferenceError)
+      res.status(500).end(`Unsupported format ${fmt}`);
     }
 
     telemetry.count('chartCount');
