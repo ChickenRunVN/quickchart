@@ -27,7 +27,15 @@ RUN apk del .build-deps
 COPY *.js ./
 COPY lib/*.js lib/
 COPY LICENSE .
+
+# Run as the unprivileged built-in `node` user; give it a writable DB dir.
+RUN mkdir -p /var/lib/db && chown -R node:node /var/lib/db
 VOLUME /var/lib/db/
 EXPOSE 3400
+
+USER node
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3400/healthcheck >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["node", "--max-http-header-size=65536", "--experimental-global-webcrypto", "index.js"]

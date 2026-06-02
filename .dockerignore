@@ -1,1 +1,13 @@
 node_modules
+.git
+.github
+.remember
+test
+*.md
+.nvmrc
+.eslintrc*
+.prettierrc*
+docker-compose.yml
+Dockerfile*
+telemetry.log
+*.db
