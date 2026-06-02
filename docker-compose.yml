@@ -3,7 +3,7 @@ services:
   quickchart:
     build: .
     # Or pull the published image instead of building:
-    # image: ghcr.io/chickenrunvn/quickchart:latest
+    # image: <your-dockerhub-username>/quickchart:latest
     ports:
       - "3400:3400"
     volumes:
