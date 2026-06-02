@@ -142,7 +142,7 @@ function failSvg(res, msg, statusCode = 500) {
   </style>
   <foreignObject width="240" height="80"
    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-    <p xmlns="http://www.w3.org/1999/xhtml">${String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+    <p xmlns="http://www.w3.org/1999/xhtml">${String(msg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
   </foreignObject>
 </svg>`);
 }
@@ -592,7 +592,7 @@ function applyTemplateOverrides(chartConfig, params) {
 app.get('/chart/render/:key', async (req, res) => {
   const { key } = req.params;
 
-  db.get('SELECT config FROM charts WHERE id = ?', [key], function(err, row) {
+  db.get('SELECT config FROM charts WHERE id = ?', [key], function (err, row) {
     if (err) {
       return res.status(500).json({ error: err.message }); // add return — else falls through to row check with null row
     }
@@ -618,9 +618,12 @@ app.get('/chart/render/:key', async (req, res) => {
   });
 });
 
-setInterval(() => {
-  db.run("DELETE FROM charts WHERE expires_at IS NOT NULL AND expires_at < datetime('now')");
-}, 24 * 60 * 60 * 1000);
+setInterval(
+  () => {
+    db.run("DELETE FROM charts WHERE expires_at IS NOT NULL AND expires_at < datetime('now')");
+  },
+  24 * 60 * 60 * 1000,
+);
 
 const port = process.env.PORT || 3400;
 const server = app.listen(port);

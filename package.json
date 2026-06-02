@@ -89,9 +89,9 @@
     "globals": "^15.0.0",
     "image-size": "^0.8.3",
     "jimp": "^0.13.0",
-    "mocha": "^6.2.3",
+    "mocha": "^11.0.0",
     "pixelmatch": "^5.1.0",
-    "prettier": "^1.18.2",
+    "prettier": "^3.0.0",
     "qrcode-reader": "^1.0.4",
     "supertest": "^4.0.2"
   },

@@ -69,17 +69,23 @@ function send() {
 
 if (process.env.ENABLE_TELEMETRY_WRITE) {
   logger.info('Telemetry writing is enabled');
-  setInterval(() => {
-    write();
-  }, 1000 * 60 * 60 * 1);
+  setInterval(
+    () => {
+      write();
+    },
+    1000 * 60 * 60 * 1,
+  );
 }
 if (process.env.ENABLE_TELEMETRY_SEND) {
   // Opt-in only. Self-host stays private by default — no phone-home to
   // quickchart.io unless the operator explicitly sets ENABLE_TELEMETRY_SEND.
   logger.info('Remote telemetry send is enabled');
-  setInterval(() => {
-    send();
-  }, 1000 * 60 * 60 * 12);
+  setInterval(
+    () => {
+      send();
+    },
+    1000 * 60 * 60 * 12,
+  );
 }
 
 module.exports = {

@@ -2,11 +2,11 @@ const request = require('supertest');
 const assert = require('assert');
 const db = require('../../lib/db');
 const app = require('../../index');
-describe('Chart API Tests', function() {
+describe('Chart API Tests', function () {
   this.timeout(6000);
   let chartId;
 
-  it('should create a new chart', function(done) {
+  it('should create a new chart', function (done) {
     request(app)
       .post('/chart/create')
       .send({
@@ -33,25 +33,21 @@ describe('Chart API Tests', function() {
       });
   });
 
-  it('should retrieve the created chart', function(done) {
-    request(app)
-      .get(`/chart/render/${chartId}`)
-      .expect(200, done);
+  it('should retrieve the created chart', function (done) {
+    request(app).get(`/chart/render/${chartId}`).expect(200, done);
   });
 
-  it('should return 404 for non-existent chart', function(done) {
-    request(app)
-      .get('/chart/render/nonexistent-id')
-      .expect(404, done);
+  it('should return 404 for non-existent chart', function (done) {
+    request(app).get('/chart/render/nonexistent-id').expect(404, done);
   });
 
-  it('should apply template overrides', function(done) {
+  it('should apply template overrides', function (done) {
     request(app)
       .get(`/chart/render/${chartId}?title=TestTitle&labels=X,Y&data1=30,40`)
       .expect(200, done);
   });
 
-  after(function(done) {
+  after(function (done) {
     db.run('DELETE FROM charts WHERE id = ?', [chartId]);
     db.close(done);
   });
