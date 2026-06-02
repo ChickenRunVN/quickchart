@@ -55,7 +55,27 @@ if (process.env.RATE_LIMIT_PER_MIN) {
       return req.headers['x-forwarded-for'] || req.ip;
     },
   });
-  app.use('/chart', limiter);
+  ['/chart', '/graphviz', '/qr', '/gchart'].forEach(p => app.use(p, limiter));
+}
+
+// Optional API-key gate. When QUICKCHART_API_KEY is set, the render endpoints
+// require it via the `x-api-key` header or `?key=`. Unset = open (default, no
+// behavior change). `/healthcheck` and `/` stay open so health checks work.
+const QUICKCHART_API_KEY = process.env.QUICKCHART_API_KEY;
+if (QUICKCHART_API_KEY) {
+  logger.info('API key auth enabled for render endpoints');
+  const PROTECTED = ['/chart', '/graphviz', '/qr', '/gchart'];
+  app.use((req, res, next) => {
+    const isProtected = PROTECTED.some(p => req.path === p || req.path.startsWith(`${p}/`));
+    if (!isProtected) {
+      return next();
+    }
+    const provided = req.get('x-api-key') || req.query.key;
+    if (provided === QUICKCHART_API_KEY) {
+      return next();
+    }
+    return res.status(401).json({ success: false, error: 'Invalid or missing API key' });
+  });
 }
 
 app.get('/', (req, res) => {

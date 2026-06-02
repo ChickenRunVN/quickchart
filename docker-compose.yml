@@ -17,6 +17,8 @@ services:
       # - DISABLE_JS_CHARTS=1
       # Per-IP request cap (off unless set):
       # - RATE_LIMIT_PER_MIN=60
+      # Require an API key on render endpoints (x-api-key header or ?key=):
+      # - QUICKCHART_API_KEY=change-me
       # Remote usage telemetry to quickchart.io is OFF by default; opt in with:
       # - ENABLE_TELEMETRY_SEND=1
     restart: unless-stopped
