@@ -18,6 +18,9 @@ FROM node:22-alpine
 ENV NODE_ENV=production
 WORKDIR /quickchart
 
+# Patch OS packages to latest to reduce base-image CVEs.
+RUN apk upgrade --no-cache
+
 # Runtime .so deps for the canvas native addon. sharp 0.34 ships its own libvips
 # via @img/* (copied in node_modules), so no system vips package is needed.
 RUN apk add --no-cache \
