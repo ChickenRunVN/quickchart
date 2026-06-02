@@ -11,29 +11,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # The image is normally pushed manually from the dev machine
+      # (docker push chickenrunvn/quickchart). This job only publishes from CI
+      # when both Docker Hub secrets are configured; otherwise it skips cleanly
+      # so a master merge stays green.
+      - name: Check Docker Hub credentials
+        id: creds
+        run: |
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not set — skipping Docker Hub publish."
+          fi
+
       - name: Checkout code
+        if: steps.creds.outputs.present == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
+        if: steps.creds.outputs.present == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        if: steps.creds.outputs.present == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Get version from package.json
+        if: steps.creds.outputs.present == 'true'
         id: package_version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
+        if: steps.creds.outputs.present == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # Image published as <DOCKERHUB_USERNAME>/quickchart. Set the
-          # DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets.
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/quickchart:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/quickchart:${{ steps.package_version.outputs.VERSION }}
