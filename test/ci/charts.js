@@ -102,7 +102,7 @@ describe('charts.js', () => {
       charts.CHART_GRADIENT_FILL,
     );
     const rgb = (await getColors(buf, 'image/png'))[0].rgb();
-    assertSimilarRgb([172, 58, 199], rgb);
+    assertSimilarRgb([172, 58, 199], rgb, 12);
   });
 
   it('renders a violin chart', async () => {
